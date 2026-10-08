@@ -155,6 +155,11 @@ PATTERNS: list[Pattern] = [
         "Endereço residencial", PESSOAL,
         r"\b(?:Rua|Av\.?|Avenida|Travessa|Alameda|Rodovia|Estrada|Pra[çc]a)\s+[A-Za-zÀ-ú][\wÀ-ú .'-]{2,60},?\s*(?:n[º°o.]*\s*)?\d{1,5}\b",
     ),
+    _p(
+        "Valor monetário", PESSOAL,
+        r"(?<![\w])R\$\s?\d+(?:\.\d{3})*(?:,\d{1,2})?(?![\w])|(?<![\w.,])\d+(?:\.\d{3})*(?:,\d{2})?\s+reais\b",
+        None, "Baixo", 0, _I,
+    ),
     # --- Dados sensíveis (art. 5º, II) por contexto/palavras-chave ---
     _p(
         "Saúde (CID / diagnóstico)", SENSIVEL,

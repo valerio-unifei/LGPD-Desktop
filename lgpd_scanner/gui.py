@@ -11,6 +11,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from . import __version__
+from .sanitizer import restore_file, sanitize_file, sanitized_paths
 from .scanner import FileResult, Finding, export_csv, fixed_drives, scan
 
 RISK_ORDER = {"Alto": 0, "Médio": 1, "Baixo": 2}
@@ -84,6 +85,8 @@ class App(tk.Tk):
         self.btn_stop.pack(side="left", padx=4)
         ttk.Button(bar, text="Exportar CSV…", command=self._export).pack(side="left", padx=4)
         ttk.Button(bar, text="Limpar", command=self._clear).pack(side="left")
+        ttk.Button(bar, text="Sanitizar LGPD (.md)", command=self._sanitize).pack(side="left", padx=(12, 4))
+        ttk.Button(bar, text="Reverter sanitização…", command=self._restore).pack(side="left")
         self.progress = ttk.Progressbar(bar, mode="indeterminate", length=180)
         self.progress.pack(side="right")
 
@@ -188,6 +191,8 @@ class App(tk.Tk):
         try:
             for _ in range(200):
                 kind, data = self.q.get_nowait()
+                if self.stop_event.is_set() and kind != "done":
+                    continue  # descarta o backlog pendente após o pedido de parada
                 if kind == "file":
                     self.status.set(f"Analisando: {data}")
                 elif kind == "result":
@@ -219,6 +224,9 @@ class App(tk.Tk):
         self.progress.stop()
         self.btn_start.config(state="normal")
         self.btn_stop.config(state="disabled")
+        if self.stop_event.is_set():
+            self.status.set(f"Varredura interrompida: {self.n_files} documento(s) analisado(s).")
+            return
         files_with = len({f.file for f in self.findings})
         self.status.set(
             f"Concluído: {self.n_files} documento(s) analisado(s), {files_with} com dados pessoais, "
@@ -243,6 +251,52 @@ class App(tk.Tk):
         if dest:
             export_csv(self.findings, dest)
             messagebox.showinfo("Exportar", f"Relatório salvo em:\n{dest}")
+
+    def _sanitize(self) -> None:
+        if self.worker and self.worker.is_alive():
+            messagebox.showinfo("Sanitizar", "Aguarde o fim da varredura.")
+            return
+        selected = {self.tree_docs.set(i, "path") for i in self.tree_docs.selection()}
+        files = sorted(selected or {f.file for f in self.findings})
+        if not files:
+            messagebox.showinfo("Sanitizar", "Não há documentos com dados pessoais.")
+            return
+        existing = [str(sanitized_paths(Path(f))[0]) for f in files if sanitized_paths(Path(f))[0].exists()]
+        if existing and not messagebox.askyesno(
+            "Sanitizar", f"{len(existing)} arquivo(s) .md já existem e serão sobrescritos. Continuar?"
+        ):
+            return
+        done, errors = [], []
+        for f in files:
+            try:
+                md, _, n = sanitize_file(Path(f))
+                done.append(f"{md.name}: {n} dado(s)")
+            except Exception as exc:
+                errors.append(f"{Path(f).name}: {exc}")
+        msg = f"{len(done)} arquivo(s) .md gerado(s) ao lado dos originais.\n"
+        msg += "Envie ao LLM apenas o .md; mantenha o arquivo .lgpd-map.json em local seguro (contém os dados originais)."
+        if errors:
+            msg += "\n\nErros:\n" + "\n".join(errors[:10])
+        messagebox.showinfo("Sanitizar", msg)
+
+    def _restore(self) -> None:
+        md = filedialog.askopenfilename(title="Markdown (sanitizado ou retornado pelo LLM)",
+                                        filetypes=[("Markdown", "*.md"), ("Todos", "*.*")])
+        if not md:
+            return
+        try:
+            try:
+                dest, n = restore_file(Path(md))
+            except FileNotFoundError:
+                mp = filedialog.askopenfilename(title="Arquivo de mapeamento (.lgpd-map.json)",
+                                                filetypes=[("Mapa LGPD", "*.json")])
+                if not mp:
+                    return
+                dest, n = restore_file(Path(md), Path(mp))
+        except Exception as exc:
+            messagebox.showerror("Reverter", f"Falha ao reverter: {exc}")
+            return
+        messagebox.showinfo("Reverter", f"{n} dado(s) restaurado(s).\nArquivo salvo em:\n{dest}")
 
     @staticmethod
     def _open_location(tree: ttk.Treeview) -> None:

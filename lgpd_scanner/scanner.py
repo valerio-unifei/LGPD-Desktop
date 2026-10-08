@@ -71,7 +71,9 @@ def list_documents(
                     yield Path(dirpath) / name
 
 
-def scan_file(path: Path, patterns: list[Pattern] = PATTERNS) -> FileResult:
+def scan_file(
+    path: Path, patterns: list[Pattern] = PATTERNS, stop: Optional[threading.Event] = None
+) -> FileResult:
     try:
         size = path.stat().st_size
     except OSError as exc:
@@ -83,6 +85,9 @@ def scan_file(path: Path, patterns: list[Pattern] = PATTERNS) -> FileResult:
     seen: set[tuple[str, str, str]] = set()
     try:
         for location, text in extract(path):
+            if stop and stop.is_set():
+                result.error = "interrompido"
+                break
             for pat, value, _pos in find_matches(text, patterns):
                 key = (location, pat.name, value)
                 if key in seen:
@@ -109,7 +114,9 @@ def scan(
             break
         if on_file:
             on_file(path)
-        res = scan_file(path, patterns)
+        res = scan_file(path, patterns, stop)
+        if stop and stop.is_set() and res.error == "interrompido":
+            break
         count += 1
         if on_result:
             on_result(res)
