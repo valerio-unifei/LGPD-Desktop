@@ -28,6 +28,6 @@ python -m unittest discover -s tests -t .
 ## Executável único
 ```powershell
 pip install pyinstaller
-pyinstaller --onefile --windowed --name LGPD-Desktop --icon unifei.ico --add-data "unifei.ico;." --collect-submodules docx --collect-submodules openpyxl run_app.py
+pyinstaller --onefile --windowed --name lgpd_desktop --icon unifei.ico --add-data "unifei.ico;." --collect-submodules docx --collect-submodules openpyxl run_app.py
 ```
-O arquivo gerado fica em `dist\LGPD-Desktop.exe`. O `--icon` define o ícone do executável e o `--add-data` garante que `unifei.ico` seja empacotado junto (em `_MEIPASS`) para a janela usá-lo em tempo de execução.
+O arquivo gerado fica em `dist\lgpd_desktop.exe`. O `--icon` define o ícone do executável e o `--add-data` garante que `unifei.ico` seja empacotado junto (em `_MEIPASS`) para a janela usá-lo em tempo de execução.
