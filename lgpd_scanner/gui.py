@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import queue
 import subprocess
+import sys
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -14,11 +15,29 @@ from .scanner import FileResult, Finding, export_csv, fixed_drives, scan
 
 RISK_ORDER = {"Alto": 0, "Médio": 1, "Baixo": 2}
 
+ICON_NAME = "unifei.ico"
+
+
+def _icon_path() -> Path | None:
+    """Localiza o ícone 'unifei.ico', tanto em execução normal quanto empacotada (PyInstaller)."""
+    candidates = []
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.append(Path(meipass) / ICON_NAME)
+    candidates.append(Path(sys.argv[0]).resolve().parent / ICON_NAME)
+    candidates.append(Path(__file__).resolve().parent.parent / ICON_NAME)
+    candidates.append(Path(__file__).resolve().parent / ICON_NAME)
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
 
 class App(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.title(f"LGPD Desktop - Localizador de dados pessoais v{__version__}")
+        self._set_icon()
         self.geometry("1150x700")
         self.minsize(900, 550)
         self.q: queue.Queue = queue.Queue()
@@ -28,6 +47,14 @@ class App(tk.Tk):
         self.n_files = 0
         self._build()
         self.after(100, self._poll)
+
+    def _set_icon(self) -> None:
+        icon = _icon_path()
+        if icon is not None:
+            try:
+                self.iconbitmap(default=str(icon))
+            except tk.TclError:
+                pass
 
     def _build(self) -> None:
         style = ttk.Style(self)
