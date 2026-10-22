@@ -1,0 +1,22 @@
+body{font:14px Segoe UI,Arial,sans-serif;margin:0;padding:0 12px 40px;color:#222}
+header h1{margin:10px 0 0;font-size:20px}header small{font-weight:400;color:#666;font-size:14px}
+.note{margin:4px 0 8px;color:#2a6b2a}
+.box{border:1px solid #ccc;border-radius:4px;padding:6px 10px;margin:6px 0}
+.box h2{font-size:13px;margin:0 0 6px}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bar{margin:8px 0}
+button,.btn{padding:5px 12px;border:1px solid #999;border-radius:3px;background:#f3f3f3;cursor:pointer;font:inherit}
+button:disabled{opacity:.5;cursor:default}
+.primary{background:#0b5cad;color:#fff;border-color:#0b5cad}
+.muted{color:#777;font-size:12px}
+#dropzone{border:2px dashed #bbb;border-radius:4px;padding:8px;text-align:center;color:#777;margin:6px 0}
+#dropzone.over{background:#eef6ff;border-color:#0b5cad}
+#file-list{max-height:110px;overflow:auto;margin:0;padding:0;list-style:none;font-size:12px}
+#file-list li{padding:1px 4px;cursor:pointer}#file-list li.sel,tr.sel{background:#cfe3ff!important}
+.tabs{display:flex;gap:2px}.tab{border-radius:3px 3px 0 0}.tab.active{background:#fff;border-bottom-color:#fff;font-weight:600}
+.tabpane{border:1px solid #ccc;max-height:50vh;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{position:sticky;top:0;background:#eee;text-align:left;cursor:pointer;padding:4px 6px;border-bottom:1px solid #ccc}
+td{padding:3px 6px;border-bottom:1px solid #eee;word-break:break-all}
+tr.Alto{background:#fde2e2}tr.Médio{background:#fff4d6}tr.sens{background:#fde2e2}tr.erro{color:#888}
+#status{position:fixed;left:0;right:0;bottom:0;background:#eee;border-top:1px solid #ccc;padding:4px 12px}

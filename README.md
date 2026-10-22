@@ -2,7 +2,10 @@
 
 Ferramenta desktop (Python + Tkinter) para Windows 11 que lista documentos **DOCX, XLSX e PDF**, extrai o conteúdo e procura dados pessoais/sensíveis da LGPD (Lei 13.709/2018) usando REGEX.
 
-## Uso
+## Versão web (100% client-side)
+A pasta `web/` é uma port em JavaScript que roda inteiramente no navegador, sem servidor nem envio de dados: abra `web/index.html` (ou publique a pasta como site estático). Selecione arquivos/pasta (ou arraste), varra, exporte CSV, sanitize (baixa um ZIP com `.md` + `.lgpd-map.json`) e reverta selecionando o `.md` e o mapa juntos. Bibliotecas em `web/vendor` (JSZip, SheetJS, pdf.js). Testes: `node --test web/tests/patterns.test.js`.
+
+## Uso (versão desktop Python)
 ```powershell
 pip install -r requirements.txt
 python -m lgpd_scanner
