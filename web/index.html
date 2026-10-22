@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LGPD Desktop - Localizador de dados pessoais</title>
+<link rel="icon" href="unifei.ico">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>LGPD Desktop <small>Localizador de dados pessoais</small></h1>
+  <p class="note">🔒 Tudo é processado localmente no seu navegador. Nenhum arquivo é enviado a servidores.</p>
+</header>
+
+<section class="box">
+  <h2>Documentos a verificar (DOCX, XLSX, PDF)</h2>
+  <div class="row">
+    <label class="btn">Adicionar arquivos… <input id="in-files" type="file" multiple accept=".docx,.xlsx,.pdf" hidden></label>
+    <label class="btn">Adicionar pasta… <input id="in-folder" type="file" webkitdirectory multiple hidden></label>
+    <button id="btn-remove">Remover selecionados</button>
+    <span id="count-files" class="muted"></span>
+  </div>
+  <div id="dropzone">Ou arraste arquivos aqui</div>
+  <ul id="file-list"></ul>
+</section>
+
+<div class="row bar">
+  <button id="btn-start" class="primary">▶ Iniciar varredura</button>
+  <button id="btn-stop" disabled>■ Parar</button>
+  <button id="btn-export">Exportar CSV…</button>
+  <button id="btn-clear">Limpar</button>
+  <button id="btn-sanitize">Sanitizar LGPD (.md)</button>
+  <label class="btn">Reverter sanitização… <input id="in-restore" type="file" multiple accept=".md,.json" hidden></label>
+  <progress id="progress" hidden></progress>
+</div>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="find">Dados encontrados</button>
+  <button class="tab" data-tab="docs">Documentos listados</button>
+</nav>
+<div id="tab-find" class="tabpane">
+  <table id="tbl-find"><thead><tr>
+    <th data-k="risk">Risco</th><th data-k="pattern">Tipo de dado</th><th data-k="category">Categoria</th>
+    <th data-k="masked">Valor (mascarado)</th><th data-k="location">Localização</th><th data-k="file">Arquivo</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+<div id="tab-docs" class="tabpane" hidden>
+  <p class="muted">Clique em linhas para selecionar documentos a sanitizar (Ctrl/Shift para vários).</p>
+  <table id="tbl-docs"><thead><tr>
+    <th data-k="name">Documento</th><th data-k="ext">Tipo</th><th data-k="kb">Tamanho (KB)</th>
+    <th data-k="n">Ocorrências</th><th data-k="status">Situação</th><th data-k="path">Caminho</th>
+  </tr></thead><tbody></tbody></table>
+</div>
+<footer id="status">Pronto.</footer>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<script src="js/patterns.js"></script>
+<script src="js/extractors.js"></script>
+<script src="js/sanitizer.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
