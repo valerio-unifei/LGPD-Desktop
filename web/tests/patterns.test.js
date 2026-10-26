@@ -51,3 +51,26 @@ test("restore after LLM edits masked text", () => {
   const clean = L.sanitizeText("CPF 529.982.247-25", mapping, { n: 0 });
   assert.strictEqual(L.restoreText(clean.replace(/\*\*/g, "xx"), mapping).text, "CPF 529.982.247-25");
 });
+
+const SAMPLE =
+  "Titular Credenciado: Amanda Novais\nDocumento de Identidade (RG): 38.242.854-1 SSP/RS\n" +
+  "Contato Telefônico: 79 0054-1199\n" +
+  "Endereço Residencial:\nColônia Lopes, 64, Vila Santo Antônio, 50609-835 Barbosa das\nFlores / PE\n" +
+  "Domicílio Bancário: Itaú (Cód. 341) | Ag.: 1434-8 | Conta Salário: 36062-8\n" +
+  "Conta Poupança:\n46048-3 e remuneração de R$ 1.500,00 ou 5 mil reais\n" +
+  "__________\nAmanda Novais\nCPF: 386.194.205-42\n";
+
+test("sample-like documents: bank, address, money, names", () => {
+  const found = L.findMatches(SAMPLE).map((m) => `${m.pat.name}=${m.value}`);
+  for (const v of ["Conta bancária / agência=1434-8", "Conta bancária / agência=36062-8", "Conta bancária / agência=46048-3",
+    "Telefone=79 0054-1199", "Valor monetário=R$ 1.500,00", "Valor monetário=5 mil reais", "Nome de pessoa=Amanda Novais",
+    "Endereço residencial=Colônia Lopes, 64, Vila Santo Antônio, 50609-835 Barbosa das\nFlores / PE"])
+    assert.ok(found.includes(v), v);
+});
+
+test("sanitize hides sample data and restores it", () => {
+  const { md, mapJson } = L.sanitizeSegments("a.pdf", [{ location: "página 1", text: SAMPLE }]);
+  for (const o of ["Amanda Novais", "36062-8", "46048-3", "1.500,00", "Colônia Lopes", "0054-1199"]) assert.ok(!md.includes(o), o);
+  const restored = L.restoreText(md, JSON.parse(mapJson).mapping).text;
+  assert.ok(restored.includes("Colônia Lopes, 64") && restored.includes("Conta Salário: 36062-8"));
+});

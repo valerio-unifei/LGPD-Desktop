@@ -11,6 +11,7 @@
   const CODES = {
     CPF: "CPF", CNPJ: "CNPJ", RG: "RG", CNH: "CNH", Telefone: "TEL",
     "Endereço residencial": "END", "Valor monetário": "VALOR", "E-mail": "EMAIL", CEP: "CEP",
+    "Conta bancária / agência": "CONTA", "Nome de pessoa": "NOME",
   };
   const TOKEN_RE = /\[\[([A-Z]+-\d+):[^\]]*\]\]/g;
 
@@ -34,9 +35,10 @@
       const i = v.indexOf("@");
       return `${v.slice(0, 1)}***@${i < 0 ? "" : v.slice(i + 1)}`;
     }
-    if (["CPF", "CNPJ", "RG", "CNH", "PIS/PASEP/NIT", "Telefone", "CEP"].includes(pat.name))
+    if (["CPF", "CNPJ", "RG", "CNH", "PIS/PASEP/NIT", "Telefone", "CEP", "Conta bancária / agência"].includes(pat.name))
       return maskDigits(v, pat.name !== "Telefone" ? 2 : 4);
     if (pat.name === "Cartão de crédito") return maskDigits(v, 4);
+    if (pat.name === "Nome de pessoa") return v.split(/\s+/).map((w) => [...w][0] + "*".repeat([...w].length - 1)).join(" ");
     if (pat.name === "Valor monetário") return v.replace(/\d/g, "*");
     if (pat.name === "Endereço residencial") return maskWords(v, 1).replace(/\d/g, "*");
     if (pat.category === L.SENSIVEL)
@@ -46,8 +48,19 @@
   }
 
   /** Substitui as ocorrências por marcadores; `mapping` (id -> original) e `counter` ({n}) são atualizados. */
-  function sanitizeText(text, mapping, counter, patterns = L.PATTERNS) {
-    const spans = L.findMatches(text, patterns).map((m) => ({ ...m, end: m.start + m.value.length }));
+  function sanitizeText(text, mapping, counter, patterns = L.PATTERNS, knownNames = []) {
+    const found = L.findMatches(text, patterns);
+    // Nomes já identificados no documento são ocultados também onde aparecem sem rótulo
+    const namePat = patterns.find((p) => p.name === "Nome de pessoa");
+    if (namePat) {
+      for (const value of knownNames) {
+        for (let i = text.indexOf(value); i >= 0; i = text.indexOf(value, i + value.length)) {
+          if (/[\p{L}\p{N}]/u.test(text[i - 1] || " ") || /[\p{L}\p{N}]/u.test(text[i + value.length] || " ")) continue;
+          found.push({ pat: namePat, value, start: i });
+        }
+      }
+    }
+    const spans = found.map((m) => ({ ...m, end: m.start + m.value.length }));
     spans.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
     const reverse = new Map();
     for (const [tid, orig] of Object.entries(mapping)) reverse.set(tid.slice(0, tid.lastIndexOf("-")) + "\0" + orig, tid);
@@ -75,9 +88,11 @@
   function sanitizeSegments(fileName, segments, patterns = L.PATTERNS) {
     const mapping = {};
     const counter = { n: 0 };
+    const knownNames = [...new Set(segments.flatMap(({ text }) => L.findMatches(text, patterns)
+      .filter((m) => m.pat.name === "Nome de pessoa").map((m) => m.value)))];
     const lines = [`# ${fileName}`, ""];
     for (const { location, text } of segments) {
-      const clean = sanitizeText(text, mapping, counter, patterns).trim();
+      const clean = sanitizeText(text, mapping, counter, patterns, knownNames).trim();
       if (!clean) continue;
       if (location.startsWith("parágrafo")) lines.push(clean, "");
       else lines.push(`**[${location}]** ${clean}`, "");
