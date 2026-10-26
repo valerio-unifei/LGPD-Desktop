@@ -14,6 +14,7 @@ button:disabled{opacity:.5;cursor:default}
 #file-list{max-height:110px;overflow:auto;margin:0;padding:0;list-style:none;font-size:12px}
 #file-list li{padding:1px 4px;cursor:pointer}#file-list li.sel,tr.sel{background:#cfe3ff!important}
 .tabs{display:flex;gap:2px}.tab{border-radius:3px 3px 0 0}.tab.active{background:#fff;border-bottom-color:#fff;font-weight:600}
+.about{padding:10px 16px}.about h2{margin-top:0}.samples li{margin:4px 0}
 .tabpane{border:1px solid #ccc;max-height:50vh;overflow:auto}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th{position:sticky;top:0;background:#eee;text-align:left;cursor:pointer;padding:4px 6px;border-bottom:1px solid #ccc}

@@ -1,15 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LGPD Desktop - Localizador de dados pessoais</title>
+<title>UNIFEI - Sanitizador LGPD</title>
 <link rel="icon" href="unifei.ico">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <h1>LGPD Desktop <small>Localizador de dados pessoais</small></h1>
+  <h1>UNIFEI - Sanitizador LGPD <small>Localizador de dados pessoais</small></h1>
+  <p class="note"><a href="exemplos.html">📄 Documentos de exemplo para teste (PDF)</a></p>
   <p class="note">🔒 Tudo é processado localmente no seu navegador. Nenhum arquivo é enviado a servidores.</p>
 </header>
 
@@ -38,7 +39,8 @@
 <nav class="tabs">
   <button class="tab active" data-tab="find">Dados encontrados</button>
   <button class="tab" data-tab="docs">Documentos listados</button>
-</nav>
+    <button class="tab" data-tab="about">Sobre</button>
+  </nav>
 <div id="tab-find" class="tabpane">
   <table id="tbl-find"><thead><tr>
     <th data-k="risk">Risco</th><th data-k="pattern">Tipo de dado</th><th data-k="category">Categoria</th>
@@ -51,6 +53,13 @@
     <th data-k="name">Documento</th><th data-k="ext">Tipo</th><th data-k="kb">Tamanho (KB)</th>
     <th data-k="n">Ocorrências</th><th data-k="status">Situação</th><th data-k="path">Caminho</th>
   </tr></thead><tbody></tbody></table>
+</div>
+<div id="tab-about" class="tabpane about" hidden>
+  <h2>UNIFEI - Sanitizador LGPD</h2>
+  <p>Ferramenta que localiza e oculta dados pessoais (LGPD, Lei 13.709/2018) em documentos DOCX, XLSX e PDF, executando 100% no navegador.</p>
+  <p><strong>Desenvolvedor:</strong> Prof. Carlos Moraes &lt;<a href="mailto:valerio@unifei.edu.br">valerio@unifei.edu.br</a>&gt;<br>
+  <strong>Instituto:</strong> IESTI - Instituto de Engenharia de Sistemas e Tecnologia da Informação<br>
+  <strong>Instituição:</strong> UNIFEI - Universidade Federal de Itajubá</p>
 </div>
 <footer id="status">Pronto.</footer>
 
