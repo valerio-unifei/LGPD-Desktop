@@ -133,6 +133,8 @@
       String.raw`\bPassaporte\b[^\w\n]{0,6}(?:n[º°o.]*\s*)?([A-Z]{2}\d{6})\b`, null, "Alto", 1, true),
     P("E-mail", PESSOAL, String.raw`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b`),
     P("Telefone", PESSOAL,
+      String.raw`(?<![\w])0[3589]00[ -]?\d{3}[ -]?\d{4}(?![\w])`),
+    P("Telefone", PESSOAL,
       String.raw`(?<![\w])(?:\+?55\s?)?(?:\(?[1-9]\d\)?\s?)(?:9\s?\d{4}[-\s]?\d{4}|[2-5]\d{3}[-\s]?\d{4}|\d{4}-\d{4})(?![\w])`,
       validPhone),
     P("CEP", PESSOAL, B + String.raw`\d{5}-\d{3}` + E, null, "Baixo"),

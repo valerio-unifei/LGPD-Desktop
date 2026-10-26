@@ -74,3 +74,11 @@ test("sanitize hides sample data and restores it", () => {
   const restored = L.restoreText(md, JSON.parse(mapJson).mapping).text;
   assert.ok(restored.includes("Colônia Lopes, 64") && restored.includes("Conta Salário: 36062-8"));
 });
+
+test("telefones 0500/0900 com 3+4 digitos", () => {
+  for (const t of ["Telefone de Contato: 0900 339 1878", "Contato Telefônico: 0500 895 7986"]) {
+    const v = L.findMatches(t).filter((m) => m.pat.name === "Telefone");
+    assert.equal(v.length, 1, t);
+    assert.ok(!L.sanitizeSegments("a", [{ location: "página 1", text: t }]).md.match(/\d{3} \d{4}/), t);
+  }
+});
