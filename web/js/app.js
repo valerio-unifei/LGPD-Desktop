@@ -120,7 +120,7 @@
   for (const b of document.querySelectorAll(".tab"))
     b.onclick = () => {
       document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
-      for (const k of ["find", "docs"]) $("tab-" + k).hidden = k !== b.dataset.tab;
+      for (const k of ["find", "docs", "about"]) $("tab-" + k).hidden = k !== b.dataset.tab;
     };
 
   $("tbl-docs").tBodies[0].onclick = (e) => {
