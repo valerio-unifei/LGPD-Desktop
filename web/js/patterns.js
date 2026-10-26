@@ -105,6 +105,17 @@
   const B = String.raw`(?<![\w.])`; // evita capturar parte de números/códigos maiores
   const E = String.raw`(?![\w])`;
 
+  const TITLE = String.raw`(?:(?:Dr|Dra|Sr|Sra|Prof|Profa|Eng)\.?[ \t]+)?`;
+  const NAME = String.raw`(\p{Lu}[\p{L}'’-]+(?:[ \t]+(?:(?:da|de|do|das|dos|e|di|del)[ \t]+)*\p{Lu}[\p{L}'’-]+){1,6})`;
+  const NOME_LABEL =
+    String.raw`(?<![\p{L}])(?:[Nn]ome|[Tt]itular|[Pp]residente|[Aa]valiador|[Rr]equerente|[Cc]andidato|[Ff]iador|[Rr]espons[áa]vel|[Bb]enefici[áa]rio|[Cc]olaborador|[Cc]ooperado|[Aa]uditor|[Pp]aciente|[Cc]liente|[Cc]ontratante|[Cc]ontratad[oa]|[Tt]estemunha|[Rr]epresentante|[Rr]elator|[Ss]ecret[áa]rio|[Cc]oordenador|[Pp]erito|[Mm]embro)[^:\n]{0,45}:[ \t]*` +
+    TITLE + NAME + String.raw`(?![\p{L}])`;
+  const NOME_SIGN = String.raw`_{5,}[ \t]*\r?\n[ \t]*` + TITLE + NAME + String.raw`[ \t]*(?:\r?\n|$)`;
+  const NOT_NAMES = new Set(["secretaria", "departamento", "instituto", "comissão", "controladoria", "comitê", "conselho",
+    "prefeitura", "ministério", "programa", "banco", "diretoria", "empresa", "órgão", "tribunal", "municipal", "nacional",
+    "federal", "estadual", "ltda", "comitê", "gestão", "técnico", "técnica"]);
+  const validName = (s) => !s.toLowerCase().split(/\s+/).some((w) => NOT_NAMES.has(w));
+
   const PATTERNS = [
     P("CPF", PESSOAL, B + String.raw`\d{3}\.?\d{3}\.?\d{3}-?\d{2}` + E, validCpf, "Alto"),
     P("CNPJ", PESSOAL, B + String.raw`\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}` + E, validCnpj, "Baixo"),
@@ -122,7 +133,9 @@
       String.raw`\bPassaporte\b[^\w\n]{0,6}(?:n[º°o.]*\s*)?([A-Z]{2}\d{6})\b`, null, "Alto", 1, true),
     P("E-mail", PESSOAL, String.raw`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b`),
     P("Telefone", PESSOAL,
-      String.raw`(?<![\w])(?:\+?55\s?)?(?:\(?[1-9]{2}\)?\s?)(?:9\s?\d{4}|[2-5]\d{3})[-\s]?\d{4}(?![\w])`,
+      String.raw`(?<![\w])0[3589]00[ -]?\d{3}[ -]?\d{4}(?![\w])`),
+    P("Telefone", PESSOAL,
+      String.raw`(?<![\w])(?:\+?55\s?)?(?:\(?[1-9]\d\)?\s?)(?:9\s?\d{4}[-\s]?\d{4}|[2-5]\d{3}[-\s]?\d{4}|\d{4}-\d{4})(?![\w])`,
       validPhone),
     P("CEP", PESSOAL, B + String.raw`\d{5}-\d{3}` + E, null, "Baixo"),
     P("Cartão de crédito", PESSOAL, String.raw`(?<![\w-])(?:\d{4}[ -]?){3}\d{1,4}(?![\w-])`, validLuhn, "Alto"),
@@ -130,18 +143,33 @@
       String.raw`\b(?:nascimento|nasc\.?|nascido(?:\(a\))?\s+em)(?![\w])[^\d\n]{0,12}(\d{2}[/.-]\d{2}[/.-]\d{4})`,
       validDate, "Médio", 1, true),
     P("Conta bancária / agência", PESSOAL,
-      String.raw`(?<![\w])(?:ag[êe]ncia|conta(?: corrente| poupan[çc]a)?|c/c)(?![\w])[^\d\n]{0,8}(\d{3,12}(?:-[\dXx])?)`,
+      String.raw`(?<![\w])(?:conta[ \t]+(?:corrente|poupan[çc]a|sal[áa]rio|pagamento|investimento|banc[áa]ria)|c/c|c/p|conta[ \t]*(?::|n[º°o.]+))[ \t]*(?:n[º°o.]*[ \t]*)?[:-]?[ \t\n]*(\d{3,12}(?:-[\dXx])?)(?![\w])`,
+      null, "Alto", 1, true),
+    P("Conta bancária / agência", PESSOAL,
+      String.raw`(?<![\w])(?:ag[êe]ncia(?:[ \t]+banc[áa]ria)?|ag(?:\.|(?=[ \t]*:)))[ \t]*(?:n[º°o.]*[ \t]*)?[:-]?[ \t\n]*(\d{3,5}(?:-[\dXx])?)(?![\w])`,
       null, "Alto", 1, true),
     P("Chave PIX aleatória", PESSOAL,
       String.raw`\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b`, null, "Médio", 0, true),
     P("Endereço IP (IPv4)", PESSOAL, B + String.raw`(?:\d{1,3}\.){3}\d{1,3}` + E, validIpv4, "Baixo"),
     P("Placa de veículo", PESSOAL,
       String.raw`\bplaca\b[^\w\n]{0,6}([A-Z]{3}-?\d[A-Z0-9]\d{2})\b`, null, "Baixo", 1, true),
+    P("CEP", PESSOAL, String.raw`(?<=,[ \t])\d{8}(?=[ \t]+\p{L})`, null, "Baixo"),
+    P("CEP", PESSOAL, String.raw`\bCEP[ \t]*[:-]?[ \t]*(\d{5}-?\d{3})(?![\w])`, null, "Baixo", 1, true),
+    // Endereço após rótulo, podendo quebrar linha, terminando em "Cidade / UF"
     P("Endereço residencial", PESSOAL,
-      String.raw`\b(?:Rua|Av\.?|Avenida|Travessa|Alameda|Rodovia|Estrada|Pra[çc]a)\s+[A-Za-zÀ-ú][\wÀ-ú .'-]{2,60},?\s*(?:n[º°o.]*\s*)?\d{1,5}\b`),
+      String.raw`(?:[Ee]ndere[çc]o|[Dd]omic[ií]lio(?![ \t]+[Bb]anc[áa]rio)|[Rr]esid[êe]ncia)[^:\n]{0,40}:[ \t\n]*([^:]{8,200}?[ \t]*/[ \t]*[A-Z]{2})(?![\p{L}])`,
+      null, "Médio", 1),
+    P("Endereço residencial", PESSOAL,
+      String.raw`\b(?:Rua|Av\.?|Avenida|Travessa|Alameda|Rodovia|Estrada|Pra[çc]a|Largo|Ladeira|Via|Beco|Quadra|Setor|Distrito|N[úu]cleo|Col[ôo]nia|Campo|Vila|Loteamento|Conjunto|Parque|S[íi]tio|Ch[áa]cara|Fazenda|Condom[íi]nio|Residencial|Recanto|Morro|Viaduto|[ÁA]rea)\s+[A-Za-zÀ-ú][\wÀ-ú .'-]{2,60},?\s*(?:n[º°o.]*\s*)?\d{1,5}(?![-\d])\b`),
     P("Valor monetário", PESSOAL,
-      String.raw`(?<![\w])R\$\s?\d+(?:\.\d{3})*(?:,\d{1,2})?(?![\w])|(?<![\w.,])\d+(?:\.\d{3})*(?:,\d{2})?\s+reais\b`,
+      String.raw`(?<![\w])R\$\s?\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?(?:\s+(?:mil|milh[ãõ]es?|bilh[ãõ]es?)(?![\w]))?(?![\w])|(?<![\w])R\$\s?\d+(?:,\d{1,2})?(?:\s+(?:mil|milh[ãõ]es?|bilh[ãõ]es?)(?![\w]))?(?![\w])|(?<![\w.,])\d+(?:\.\d{3})*(?:,\d{1,2})?(?:\s+(?:mil|milh[ãõ]es?))?\s+reais\b`,
       null, "Baixo", 0, true),
+    P("Valor monetário", PESSOAL,
+      String.raw`(?:valor|remunera[çc][ãa]o|sal[áa]rio|honor[áa]rios|bolsa|subs[íi]dio|jeton|pagamento|renda|montante|total)[^:\n\d]{0,30}[:-][ \t]*(\d{1,3}(?:\.\d{3})*,\d{2})(?![\w])`,
+      null, "Baixo", 1, true),
+    // Nomes de pessoas: após rótulos (Titular, Nome, ...) e em linhas de assinatura
+    P("Nome de pessoa", PESSOAL, NOME_LABEL, validName, "Médio", 1),
+    P("Nome de pessoa", PESSOAL, NOME_SIGN, validName, "Médio", 1),
     // --- Dados sensíveis (art. 5º, II) por contexto/palavras-chave ---
     P("Saúde (CID / diagnóstico)", SENSIVEL,
       String.raw`(?<![\w])(?:CID(?:-?10)?[\s:.-]*[A-TV-Z]\d{2}(?:\.\d)?|diagn[óo]stic[oa]\s*:\s*\S[^\n]{2,60}|HIV|soropositivo|c[âa]ncer|depress[ãa]o|esquizofrenia|transtorno bipolar|tuberculose|hepatite\s+[A-C])\b`,
